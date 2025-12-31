@@ -1,0 +1,230 @@
+PS C:\Users\STARNET> minikube start
+* minikube v1.37.0 on Microsoft Windows 11 Home Single Language 10.0.26200.7462 Build 26200.7462
+* Automatically selected the docker driver
+* Using Docker Desktop driver with root privileges
+* Starting "minikube" primary control-plane node in "minikube" cluster
+* Pulling base image v0.0.48 ...
+* Creating docker container (CPUs=2, Memory=2879MB) ...
+! Failing to connect to https://registry.k8s.io/ from inside the minikube container
+* To pull new external images, you may need to configure a proxy: https://minikube.sigs.k8s.io/docs/reference/networking/proxy/
+* Preparing Kubernetes v1.34.0 on Docker 28.4.0 ...
+* Configuring bridge CNI (Container Networking Interface) ...
+* Verifying Kubernetes components...
+  - Using image gcr.io/k8s-minikube/storage-provisioner:v5
+* Enabled addons: storage-provisioner, default-storageclass
+* Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
+
+---
+
+PS C:\Users\STARNET> minikube status
+minikube
+type: Control Plane
+host: Running
+kubelet: Running
+apiserver: Running
+kubeconfig: Configured
+
+---
+
+PS C:\Users\STARNET> kubectl get nodes
+NAME       STATUS   ROLES           AGE     VERSION
+minikube   Ready    control-plane   2m34s   v1.34.0
+
+---
+
+PS C:\Users\STARNET> kubectl get pods -A
+NAMESPACE     NAME                               READY   STATUS    RESTARTS   AGE
+kube-system   coredns-66bc5c9577-bcgnm           1/1     Running   0          2m40s
+kube-system   etcd-minikube                      1/1     Running   0          2m59s
+kube-system   kube-apiserver-minikube            1/1     Running   0          2m59s
+kube-system   kube-controller-manager-minikube   1/1     Running   0          2m59s
+kube-system   kube-proxy-dl4wb                   1/1     Running   0          2m41s
+kube-system   kube-scheduler-minikube            1/1     Running   0          2m59s
+kube-system   storage-provisioner                1/1     Running   0          2m14s
+
+---
+
+PS C:\Users\STARNET> minikube image list
+registry.k8s.io/pause:3.10.1
+registry.k8s.io/kube-scheduler:v1.34.0
+registry.k8s.io/kube-proxy:v1.34.0
+registry.k8s.io/kube-controller-manager:v1.34.0
+registry.k8s.io/kube-apiserver:v1.34.0
+registry.k8s.io/etcd:3.6.4-0
+registry.k8s.io/coredns/coredns:v1.12.1
+gcr.io/k8s-minikube/storage-provisioner:v5
+
+---
+
+after loading image to minikube cluster
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl apply -f deployment.yaml
+deployment.apps/greeting-app created
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get deployments
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+greeting-app   0/2     2            0           16s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                          READY   STATUS              RESTARTS   AGE
+greeting-app-c658cd49-jhvnr   0/1     ErrImageNeverPull   0          34s
+greeting-app-c658cd49-kmbkv   0/1     ErrImageNeverPull   0          34s
+
+---
+
+**need to fix this ErrImageNeverPull Status**
+**fixed**
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+greeting-app-544d49bc84-9mvvr   1/1     Running   0          23s
+greeting-app-544d49bc84-jcnkh   1/1     Running   0          23s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl apply -f service.yaml
+service/greeting-app created
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get services
+NAME           TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+greeting-app   NodePort    10.111.131.220   <none>        80:31780/TCP   12s
+kubernetes     ClusterIP   10.96.0.1        <none>        443/TCP        17m
+
+---
+
+here we go again
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl apply -f deployment.yaml
+deployment.apps/greeting-fastapi created
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get deployments
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+greeting-fastapi   0/2     2            0           7s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                               READY   STATUS              RESTARTS   AGE
+greeting-fastapi-cf79cf654-2djb4   0/1     ContainerCreating   0          16s
+greeting-fastapi-cf79cf654-gg9gj   0/1     ContainerCreating   0          15s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                               READY   STATUS              RESTARTS   AGE
+greeting-fastapi-cf79cf654-2djb4   0/1     ContainerCreating   0          20s
+greeting-fastapi-cf79cf654-gg9gj   0/1     ContainerCreating   0          19s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+greeting-fastapi-cf79cf654-2djb4   1/1     Running   0          30s
+greeting-fastapi-cf79cf654-gg9gj   1/1     Running   0          29s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl apply -f service.yaml
+service/greeting-fastapi created
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get services
+NAME               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+greeting-fastapi   NodePort    10.108.135.237   <none>        80:30735/TCP   8s
+kubernetes         ClusterIP   10.96.0.1        <none>        443/TCP        7m45s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> minikube service greeting-fastapi
+┌───────────┬──────────────────┬─────────────┬───────────────────────────┐
+│ NAMESPACE │       NAME       │ TARGET PORT │            URL            │
+├───────────┼──────────────────┼─────────────┼───────────────────────────┤
+│ default   │ greeting-fastapi │ 80          │ http://192.168.49.2:30735 │
+└───────────┴──────────────────┴─────────────┴───────────────────────────┘
+🏃  Starting tunnel for service greeting-fastapi./┌───────────┬──────────────────┬─────────────┬────────────────────────┐
+│ NAMESPACE │       NAME       │ TARGET PORT │          URL           │
+├───────────┼──────────────────┼─────────────┼────────────────────────┤
+│ default   │ greeting-fastapi │             │ http://127.0.0.1:64200 │
+└───────────┴──────────────────┴─────────────┴────────────────────────┘
+🏃  Starting tunnel for service greeting-fastapi.
+🎉  Opening service default/greeting-fastapi in default browser...
+❗  Because you are using a Docker driver on windows, the terminal needs to be open to run it.
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+greeting-fastapi-cf79cf654-2djb4   1/1     Running   0          3m17s
+greeting-fastapi-cf79cf654-gg9gj   1/1     Running   0          3m16s
+
+---
+
+PS C:\Users\STARNET\K8S-learning-proj> minikube dashboard
+🔌  Enabling dashboard ...
+    ▪ Using image docker.io/kubernetesui/metrics-scraper:v1.0.8
+    ▪ Using image docker.io/kubernetesui/dashboard:v2.7.0
+💡  Some dashboard features require the metrics-server addon. To enable all features please run:
+
+        minikube addons enable metrics-server
+
+🤔  Verifying dashboard health ...
+🚀  Launching proxy ...
+🤔  Verifying proxy health ...
+🎉  Opening http://127.0.0.1:60304/api/v1/namespaces/kubernetes-dashboard/services/http:kubernetes-dashboard:/proxy/ in your default browser...
+
+---
+
+PS C:\Users\STARNET> kubectl get pods
+NAME                               READY   STATUS    RESTARTS   AGE
+greeting-fastapi-cf79cf654-2djb4   1/1     Running   0          11m
+greeting-fastapi-cf79cf654-gg9gj   1/1     Running   0          11m
+
+---
+
+PS C:\Users\STARNET> kubectl logs -f greeting-fastapi-cf79cf654-2djb4
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     10.244.0.1:14604 - "GET / HTTP/1.1" 200 OK
+INFO:     10.244.0.1:14604 - "GET /static/style.css HTTP/1.1" 200 OK
+INFO:     10.244.0.1:14604 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     10.244.0.1:56037 - "GET / HTTP/1.1" 200 OK
+INFO:     10.244.0.1:56037 - "GET /static/style.css HTTP/1.1" 200 OK
+INFO:     10.244.0.1:56037 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     10.244.0.1:1105 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:1105 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:35838 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:16899 - "POST /greet HTTP/1.1" 200 OK
+
+---
+
+PS C:\Users\STARNET> kubectl logs -f greeting-fastapi-cf79cf654-gg9gj
+INFO:     Started server process [1]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     10.244.0.1:23350 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:15253 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:15253 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:15253 - "POST /greet HTTP/1.1" 200 OK
+INFO:     10.244.0.1:15253 - "POST /greet HTTP/1.1" 200 OK
+
+---

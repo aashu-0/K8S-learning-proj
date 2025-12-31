@@ -227,6 +227,7 @@ Create `deployment.yaml` defining:
 * Resource requests and limits
 
 ### 9.2 Apply Deployment
+(run from project directory, no virtual envi)
 
 ```bash
 kubectl apply -f deployment.yaml
@@ -269,6 +270,12 @@ Access application:
 minikube service greeting-fastapi
 ```
 
+Minikube Dashboard:
+
+```bash
+minikube dashboard
+```
+
 ---
 
 ## 11. Testing and Validation
@@ -278,17 +285,33 @@ minikube service greeting-fastapi
    ```bash
    kubectl get pods
    ```
+2. Load Balancing:
 
-2. Test self-healing (optional):
+   ```bash
+   kubectl logs -f <pod-id>
+   ```
+
+3. Test self-healing (optional):
 
    ```bash
    kubectl delete pod <pod-name>
    ```
 
-3. Scale application (optional):
+4. Scale application (optional):
 
    ```bash
    kubectl scale deployment greeting-fastapi --replicas=3
    ```
 
 ---
+ ## 12. Load Testing with Postman
+
+ 1. Use Postman to run performance tests:
+      * Go to ```Collections -> Runs -> Performance -> Run Performance Test```
+      * example: Fixed Configuration with 10 users for 1 minute.
+
+## 13. Stop Minikube
+Stop the Minikube cluster:
+   ```bash
+   minikube stop
+   ```
