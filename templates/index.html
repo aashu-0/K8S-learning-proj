@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Greeting App</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Simple Greeting App</h1>
+
+        <form method="post" action="/greet">
+            <input type="text" name="name" placeholder="Enter your name" required>
+            <button type="submit">Greet Me</button>
+        </form>
+
+        {% if greeting %}
+            <p class="greeting">{{ greeting }}</p>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: greeting-app
+spec:
+  replicas: 2 # Number of pods
+  selector:
+    matchLabels:
+      app: greeting
+  template:
+    metadata:
+      labels:
+        app: greeting
+    spec:
+      containers:
+        - name: greeting-container
+          image: aashu/greeting-fastapi:latest
+          imagePullPolicy: Never # Tell Kubernetes not to pull from a registry
+          # image: aashu0/greeting-fastapi:latest  
+          resources:
+            requests:   # Guaranteed minimum
+              memory: "32Mi" # 32 Megabytes of RAM
+              cpu: "100m" # 100m = 0.1 CPU core = 10% of one core
+            limits:   # Absolute maximum
+              memory: "64Mi" # 64 Megabytes of RAM
+              cpu: "200m" # 200m = 0.2 CPU core = 20% of one core
+          ports:
+            - containerPort: 8000
